@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.Unity.VisualStudio.Editor;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -69,7 +71,13 @@ public class PlayerController : MonoBehaviour
     float healTimer;
     [SerializeField] float timeToHeal;
     [Space(5)]
-
+    
+    [Header("Mana Settings:")]
+    [SerializeField] UnityEngine.UI.Image manaStorage;
+    [SerializeField] float mana;
+    [SerializeField] float manaDrainSpeed;
+    [SerializeField] float manaGain;
+    [Space(5)]
 
     [HideInInspector] public PlayerStateList pState;
     private HitFreezeDetection freezeDetector;
@@ -132,6 +140,9 @@ public class PlayerController : MonoBehaviour
         }
 
         gravity = rb.gravityScale;
+
+        Mana = mana;
+        manaStorage.fillAmount = Mana;
     }
 
     //Per visualizzare le hitbox degli attacchi
@@ -400,6 +411,8 @@ public class PlayerController : MonoBehaviour
 
                 enemy.EnemyHit(damage, hitDirection, recoilStrength);
                 hitEnemies.Add(enemy);
+
+                Mana += manaGain;
             }
         }
 
@@ -556,7 +569,7 @@ public class PlayerController : MonoBehaviour
                             Color.Lerp(Color.white, Color.black, Mathf.PingPong(Time.time * hitFlashSpeed, 1.0f)) : Color.white;
     }
 
-    //Gestione della salute massima e minima
+    //Gestione della salute
     public int Health
     {
         get {return health; }
@@ -574,9 +587,10 @@ public class PlayerController : MonoBehaviour
         }
     } 
 
+    //Gestione della cura
     void Heal()
     {
-        if(Input.GetButton("Heal") && Health < maxHealth && !pState.jumping && !pState.dashing)
+        if(Input.GetButton("Heal") && Health < maxHealth && Mana > 0 && !pState.jumping && !pState.dashing)
         {
             pState.healing = true;
             anim.SetBool("Healing", true);
@@ -588,12 +602,28 @@ public class PlayerController : MonoBehaviour
                 Health++;
                 healTimer = 0;
             }
+
+            Mana -= Time.deltaTime * manaDrainSpeed;
         }
         else
         {
             pState.healing = false;
             anim.SetBool("Healing", false);
             healTimer = 0;
+        }
+    }
+
+    //Gestione del mana
+    float Mana
+    {
+        get { return mana; }
+        set
+        {
+            if(mana != value)
+            {
+                mana = Mathf.Clamp(value, 0, 1);
+                manaStorage.fillAmount = Mana;
+            }
         }
     }
 
