@@ -1,0 +1,35 @@
+Licenza d'Uso Limitato - Progetto Unity  
+Limited Use License - Unity Project
+
+Copyright (c) 2025 Davide Tommasino  
+Contatto: davidetom003@gmail.com
+
+--- English ---
+
+This project is provided for educational, inspirational, or study purposes.  
+You are **allowed** to:
+- View the source code.
+- Reuse *small portions* of code (e.g. functions, classes, structures) in personal non-commercial projects, as long as proper attribution is maintained.
+
+**You are not allowed** to:
+- Copy, publish, or redistribute the full project or large portions of it, even with minor modifications.
+- Use this project (in full or in major part) in commercial products.
+- Claim the project as your own or remove attribution.
+
+For any commercial use or extended redistribution, permission from the author is required.  
+Contact: davidetom003@gmail.com
+
+--- Italiano ---
+
+Questo progetto è reso disponibile per fini didattici, di ispirazione o studio.  
+È **permesso**:
+- Consultare il codice sorgente.
+- Riutilizzare *porzioni limitate* del codice (es. funzioni, classi, strutture) in progetti personali non commerciali, a patto che sia mantenuta l’attribuzione originale.
+
+**Non è permesso**:
+- Copiare, pubblicare o redistribuire l’intero progetto o gran parte di esso, anche con modifiche minime.
+- Usare questo progetto (interamente o in larga parte) in prodotti commerciali.
+- Spacciare il progetto come proprio o rimuovere l’attribuzione.
+
+Per qualsiasi utilizzo commerciale o ridistribuzione estesa, è richiesto il permesso dell’autore.  
+Contattare: davidetom003@gmail.com
