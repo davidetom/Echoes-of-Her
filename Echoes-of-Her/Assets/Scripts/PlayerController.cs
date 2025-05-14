@@ -55,6 +55,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float recoilYSpeed = 100;
     private float recoilTimerX = 0f;
     private float recoilTimerY = 0f;
+    private float recoilDirectionX = 0f;
+    private float recoilDirectionY = 0f;
     [Space(5)]
 
     [Header("Health Settings:")]
@@ -353,10 +355,12 @@ public class PlayerController : MonoBehaviour
             if (recoilDir == pState.recoilingX)
             {
                 recoilTimerX = 0f;
+                recoilDirectionX = -transform.localScale.x;
             }
             else if (recoilDir == pState.recoilingY)
             {
                 recoilTimerY = 0f;
+                recoilDirectionY = yAxis < 0 ? 1f : -1f;
             }
         }
         bool enemyHit = false;
@@ -410,7 +414,7 @@ public class PlayerController : MonoBehaviour
             //Rinculo causato da attacco
             else
             {
-                recoilDirection = -transform.localScale.x;
+                recoilDirection = recoilDirectionX;
             }
             rb.linearVelocity = new Vector2(recoilDirection * recoilXSpeed, rb.linearVelocity.y);
             
@@ -435,7 +439,7 @@ public class PlayerController : MonoBehaviour
             //Rinculo causato da attacco
             else
             {
-                recoilDirection = yAxis < 0 ? 1f : -1f;
+                recoilDirection = recoilDirectionY;
             }
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, recoilDirection * recoilYSpeed);
             airJumpCounter = 0;
