@@ -130,7 +130,6 @@ public class Enemy : MonoBehaviour
         // Debug player detection
         if (other.CompareTag("Player"))
         {
-            Debug.Log("Player detected by " + gameObject.name);
 
             Collider2D playerCollider = other.GetComponent<Collider2D>();
             Vector2 hitPoint = playerCollider.ClosestPoint(transform.position);
@@ -140,7 +139,6 @@ public class Enemy : MonoBehaviour
             PlayerController playerController = other.GetComponent<PlayerController>();
             if (playerController != null && !playerController.pState.invincible)
             {
-                Debug.Log("Attacking player with damage: " + damage);
                 Attack();
                 freezeDetector.HitManager(hitPoint, hitDirection);
             }

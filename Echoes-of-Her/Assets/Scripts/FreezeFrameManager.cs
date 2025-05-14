@@ -29,7 +29,7 @@ public class FreezeFrameManager : MonoBehaviour
     /// Attiva un freeze-frame per la durata specificata.
     /// </summary>
     /// <param name="duration">Durata del congelamento in secondi (default: 1/20 di secondo)</param>
-    public void DoFreezeFrame(float duration = 0.05f)
+    public void DoFreezeFrame(float duration)
     {
         if (!isFrozen)
         {

@@ -60,17 +60,25 @@ public class PlayerController : MonoBehaviour
     [Space(5)]
 
     [Header("Health Settings:")]
-    [SerializeField] public int maxHealt;
-    [HideInInspector] public int health;
+    [SerializeField] public int maxHealth = 5;
+    public int health;
+    [SerializeField] GameObject bloodSpurt;
+    [SerializeField] float hitFlashSpeed;
+    public delegate void OnHealthChangedDelegate();
+    [HideInInspector] public OnHealthChangedDelegate onHealthChangedCallBack;
+    float healTimer;
+    [SerializeField] float timeToHeal;
     [Space(5)]
 
 
     [HideInInspector] public PlayerStateList pState;
-    [HideInInspector] public HitFreezeDetection freezeDetector;
+    private HitFreezeDetection freezeDetector;
+    private Animator anim;
     private Rigidbody2D rb;
+    private SpriteRenderer sr;
     private float xAxis, yAxis;
     private float gravity;
-    Animator anim;
+    
 
 
    public static PlayerController Instance;
@@ -85,6 +93,7 @@ public class PlayerController : MonoBehaviour
         {
             Instance = this;
         }
+        Health = maxHealth;
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -110,6 +119,12 @@ public class PlayerController : MonoBehaviour
             Debug.LogError("Rigidbody2D non trovato sul GameObject!");
         }
 
+        sr = GetComponent<SpriteRenderer>();
+        if (sr == null)
+        {
+            Debug.LogError("SpriteRenderer non trovato sul GameObject!");
+        }
+
         anim = GetComponent<Animator>();
         if (anim == null)
         {
@@ -117,7 +132,6 @@ public class PlayerController : MonoBehaviour
         }
 
         gravity = rb.gravityScale;
-        health = maxHealt;
     }
 
     //Per visualizzare le hitbox degli attacchi
@@ -155,6 +169,13 @@ public class PlayerController : MonoBehaviour
         Jump();
         StartDash();
         Attack();
+        FlashWhileInvincible();
+        Heal();
+    }
+
+    private void FixedUpdate()
+    {
+        if(pState.dashing) return;
         Recoil();
     }
 
@@ -163,7 +184,7 @@ public class PlayerController : MonoBehaviour
     {
         xAxis = Input.GetAxisRaw("Horizontal");
         yAxis = Input.GetAxisRaw("Vertical");
-        attack = Input.GetMouseButtonDown(0);
+        attack = Input.GetButtonDown("Attack");
     }
 
     //Gestione della rotazione della sprite 
@@ -513,8 +534,7 @@ public class PlayerController : MonoBehaviour
     //Gestione danno
     public void TakeDamage(float damage, Vector2Int hitDirection)
     {
-        health -= Mathf.RoundToInt(damage);
-        Debug.Log("Taking damage...");
+        Health -= Mathf.RoundToInt(damage);
         RecoilFromHit(hitDirection);
         StartCoroutine(StopTakingDamage());
     }
@@ -523,16 +543,58 @@ public class PlayerController : MonoBehaviour
     IEnumerator StopTakingDamage()
     {
         pState.invincible = true;
+        GameObject bloodSpurtParticles = Instantiate(bloodSpurt, transform.position, Quaternion.identity);
+        Destroy(bloodSpurtParticles, 1.5f);
         anim.SetTrigger("TakeDamage");
-        ClampHealth();
         yield return new WaitForSeconds(1f);
         pState.invincible = false;
     }
 
-    //Gestione della salute massima e minima
-    void ClampHealth()
+    void FlashWhileInvincible()
     {
-        health = Mathf.Clamp(health, 0, maxHealt);
+        sr.material.color = pState.invincible ? 
+                            Color.Lerp(Color.white, Color.black, Mathf.PingPong(Time.time * hitFlashSpeed, 1.0f)) : Color.white;
+    }
+
+    //Gestione della salute massima e minima
+    public int Health
+    {
+        get {return health; }
+        set
+        {
+            if(health != value)
+            {
+                health = Mathf.Clamp(value, 0, maxHealth);
+
+                if(onHealthChangedCallBack != null)
+                {
+                    onHealthChangedCallBack.Invoke();
+                }
+            }
+        }
+    } 
+
+    void Heal()
+    {
+        if(Input.GetButton("Heal") && Health < maxHealth && !pState.jumping && !pState.dashing)
+        {
+            pState.healing = true;
+            anim.SetBool("Healing", true);
+
+            //healing
+            healTimer += Time.deltaTime;
+            if(healTimer >= timeToHeal)
+            {
+                Health++;
+                healTimer = 0;
+            }
+        }
+        else
+        {
+            pState.healing = false;
+            anim.SetBool("Healing", false);
+            healTimer = 0;
+        }
     }
 
     //Gestione controllo del terreno

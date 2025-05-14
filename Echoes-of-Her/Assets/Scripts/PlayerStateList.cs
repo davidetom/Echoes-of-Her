@@ -9,4 +9,5 @@ public class PlayerStateList : MonoBehaviour
     public float recoilingFromHitHorizontal = 0f;
     public bool lookingRight = true;
     public bool invincible = false;
+    public bool healing = false;
 }
