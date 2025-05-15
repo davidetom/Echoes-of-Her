@@ -1,7 +1,10 @@
+using System;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    public static event Action<Enemy> OnEnemySpawned;
+
     [Header("General Settings:")]
     [SerializeField] protected float health;
     [SerializeField] protected float recoilLength;
@@ -41,6 +44,15 @@ public class Enemy : MonoBehaviour
         {
             Debug.LogError("HitFreezeDetection non trovato sul GameObject!");
             freezeDetector = gameObject.AddComponent<HitFreezeDetection>();
+        }
+    }
+
+    protected virtual void OnEnable()
+    {
+        // Notifica che un nuovo nemico è stato creato/abilitato
+        if (OnEnemySpawned != null)
+        {
+            OnEnemySpawned(this);
         }
     }
 

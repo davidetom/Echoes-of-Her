@@ -79,6 +79,21 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float manaGain;
     [Space(5)]
 
+    [Header("Spell Casting Settings:")]
+    [SerializeField] float manaSpellCost = 0.33f;
+    [SerializeField] float timeBetweenCast = 0.5f;
+    float timeSinceCast;
+    [SerializeField] float spellDamage;
+    [SerializeField] float downSpellForce;
+    [SerializeField] GameObject sideSpellFireball;
+    [SerializeField] GameObject upSpellExplosion;
+    [SerializeField] GameObject downSpellFireball;
+    [SerializeField] private float spellInvincibilityDuration = 0.5f; // Nuovo parametro per la durata dell'invincibilità
+    [SerializeField] private float downSpellMaxVelocity = 15f; // Velocità massima per l'incantesimo verso il basso
+    private bool isDownSpellActive = false; // Flag per tracciare se l'incantesimo verso il basso è attivo
+
+    [Space(5)]
+
     [HideInInspector] public PlayerStateList pState;
     private HitFreezeDetection freezeDetector;
     private Animator anim;
@@ -86,14 +101,16 @@ public class PlayerController : MonoBehaviour
     private SpriteRenderer sr;
     private float xAxis, yAxis;
     private float gravity;
+
+    // Aggiungiamo una lista per tenere traccia dei collider dei nemici che stiamo ignorando
+    private List<Collider2D> ignoredEnemyColliders = new List<Collider2D>();
+    private Collider2D playerCollider;
     
-
-
-   public static PlayerController Instance;
+    public static PlayerController Instance;
 
     private void Awake()
     {
-        if(Instance != null && Instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
         }
@@ -102,6 +119,13 @@ public class PlayerController : MonoBehaviour
             Instance = this;
         }
         Health = maxHealth;
+        
+        // Ottieni il collider del giocatore
+        playerCollider = GetComponent<Collider2D>();
+        if (playerCollider == null)
+        {
+            Debug.LogError("Collider2D non trovato sul Player!");
+        }
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -172,8 +196,8 @@ public class PlayerController : MonoBehaviour
         GetInputs();
         UpdateJumpVariables();
         ManageDashState();
-        
-        if(pState.dashing) return;
+
+        if (pState.dashing) return;
 
         Flip();
         Move();
@@ -182,11 +206,21 @@ public class PlayerController : MonoBehaviour
         Attack();
         FlashWhileInvincible();
         Heal();
+        CastSpell();
+    }
+
+    //Per incantesimi verso l'alto e il basso
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.GetComponent<Enemy>() != null && pState.casting)
+        {
+            other.GetComponent<Enemy>().EnemyHit(spellDamage, (other.transform.position - transform.position).normalized, -recoilYSpeed);
+        }
     }
 
     private void FixedUpdate()
     {
-        if(pState.dashing) return;
+        if (pState.dashing) return;
         Recoil();
     }
 
@@ -556,10 +590,33 @@ public class PlayerController : MonoBehaviour
     IEnumerator StopTakingDamage()
     {
         pState.invincible = true;
+
+        // Crea l'effetto sangue PRIMA di attivare l'attraversamento nemici
         GameObject bloodSpurtParticles = Instantiate(bloodSpurt, transform.position, Quaternion.identity);
-        Destroy(bloodSpurtParticles, 1.5f);
-        anim.SetTrigger("TakeDamage");
+        if (bloodSpurtParticles != null)
+        {
+            // Assicurati che l'effetto sangue sia visibile e attivo
+            bloodSpurtParticles.SetActive(true);
+            Debug.Log("Effetto sangue creato: " + bloodSpurtParticles.name);
+            Destroy(bloodSpurtParticles, 1.5f);
+        }
+        else
+        {
+            Debug.LogError("Impossibile creare l'effetto sangue!");
+        }
+        
+        // Triggera l'animazione di danno
+        if (anim != null)
+        {
+            anim.SetTrigger("TakeDamage");
+        }
+        
+        // Attiva l'attraversamento nemici DOPO aver gestito l'effetto sangue
+        EnableEnemyPhasing(true);
+
         yield return new WaitForSeconds(1f);
+
+        EnableEnemyPhasing(false);
         pState.invincible = false;
     }
 
@@ -627,28 +684,179 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    //Gestione incantesimi
+    void CastSpell()
+    {
+        if (Input.GetButtonDown("CastSpell") && timeSinceCast >= timeBetweenCast && Mana >= manaSpellCost)
+        {
+            pState.casting = true;
+            timeSinceCast = 0;
+            StartCoroutine(CastCoroutine());
+        }
+        else
+        {
+            timeSinceCast += Time.deltaTime;
+        }
+
+        if (Grounded() && isDownSpellActive)
+        {
+            downSpellFireball.SetActive(false);
+            isDownSpellActive = false;
+        }
+
+        if (isDownSpellActive && downSpellFireball.activeInHierarchy)
+        {
+            rb.AddForce(downSpellForce * Vector2.down);
+            if (rb.linearVelocity.y < -downSpellMaxVelocity)
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, -downSpellMaxVelocity);
+            }
+        }
+    }
+
+    IEnumerator CastCoroutine()
+    {
+        anim.SetBool("Casting", true);
+
+        pState.invincible = true;
+        EnableEnemyPhasing(true);
+
+        yield return new WaitForSeconds(0.15f);
+
+        //Incantesimo laterale
+        if (yAxis == 0 || (yAxis < 0 && Grounded()))
+        {
+            GameObject fireball = Instantiate(sideSpellFireball, SideAttackTransform.position, Quaternion.identity);
+            if (pState.lookingRight)
+            {
+                fireball.transform.eulerAngles = Vector3.zero;
+            }
+            else
+            {
+                fireball.transform.eulerAngles = new Vector2(fireball.transform.eulerAngles.x, 180);
+            }
+            pState.recoilingX = true;
+        }
+
+        //Incantesimo verso l'alto
+        else if (yAxis > 0)
+        {
+            Instantiate(upSpellExplosion, transform);
+            rb.linearVelocity = Vector2.zero;
+        }
+
+        //Incantesimo verso il basso
+        else if (yAxis < 0 && !Grounded())
+        {
+            downSpellFireball.SetActive(true);
+            isDownSpellActive = true;
+        }
+
+        Mana -= manaSpellCost;
+
+        yield return new WaitForSeconds(0.35f);
+        anim.SetBool("Casting", false);
+
+        yield return new WaitForSeconds(spellInvincibilityDuration);
+
+        EnableEnemyPhasing(false);
+        pState.invincible = false;
+        pState.casting = false;
+    }
+
+    // Durante l'incantesimo verso il basso, assicura che le collisioni con il terreno vengano rilevate
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (isDownSpellActive && (collision.gameObject.layer == LayerMask.NameToLayer("Ground") || 
+            (whatIsGround == (whatIsGround | (1 << collision.gameObject.layer)))))
+        {
+            downSpellFireball.SetActive(false);
+            isDownSpellActive = false;
+        }
+    }
+
+    // Nuovo metodo per gestire l'attraversamento dei nemici
+    void EnableEnemyPhasing(bool enable)
+    {
+        if (playerCollider == null) return;
+        
+        // Trova tutti i nemici nella scena
+        Enemy[] enemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+        
+        
+        foreach (Enemy enemy in enemies)
+        {
+            Collider2D[] enemyColliders = enemy.GetComponents<Collider2D>();
+            
+            foreach (Collider2D enemyCollider in enemyColliders)
+            {
+                if (enable)
+                {
+                    // Ignora collisioni con questo nemico
+                    Physics2D.IgnoreCollision(playerCollider, enemyCollider, true);
+                    ignoredEnemyColliders.Add(enemyCollider);
+                }
+                else
+                {
+                    // Ripristina collisioni con questo nemico
+                    Physics2D.IgnoreCollision(playerCollider, enemyCollider, false);
+                }
+            }
+        }
+        
+        // Se disabilitiamo l'attraversamento, puliamo la lista
+        if (!enable)
+        {
+            ignoredEnemyColliders.Clear();
+        }
+    }
+    
+    // Metodo per gestire nuovi nemici che potrebbero apparire durante l'invincibilità
+    void OnEnable()
+    {
+        Enemy.OnEnemySpawned += HandleNewEnemySpawned;
+    }
+    
+    void OnDisable()
+    {
+        Enemy.OnEnemySpawned -= HandleNewEnemySpawned;
+    }
+    
+    void HandleNewEnemySpawned(Enemy newEnemy)
+    {
+        if (pState.invincible && playerCollider != null)
+        {
+            Collider2D[] enemyColliders = newEnemy.GetComponents<Collider2D>();
+            foreach (Collider2D enemyCollider in enemyColliders)
+            {
+                Physics2D.IgnoreCollision(playerCollider, enemyCollider, true);
+                ignoredEnemyColliders.Add(enemyCollider);
+            }
+        }
+    }
+
     //Gestione controllo del terreno
     public bool Grounded()
     {
         if (groundCheckPoint == null) return false;
-        
+
         // Utilizzio di OverlapBox
         Vector2 boxCenter = groundCheckPoint.position;
         Vector2 boxSize = new Vector2(groundCheckX * 2, groundCheckY * 0.5f);
-        
+
         // Box sotto i piedi del personaggio
         Collider2D groundCollider = Physics2D.OverlapBox(
-            boxCenter + Vector2.down * groundCheckY * 0.75f, 
-            boxSize, 
-            0f, 
+            boxCenter + Vector2.down * groundCheckY * 0.75f,
+            boxSize,
+            0f,
             whatIsGround
         );
-        
+
         // Debug visivo
-        Debug.DrawLine(boxCenter + new Vector2(-boxSize.x/2, 0), 
-                       boxCenter + new Vector2(boxSize.x/2, 0), 
+        Debug.DrawLine(boxCenter + new Vector2(-boxSize.x / 2, 0),
+                       boxCenter + new Vector2(boxSize.x / 2, 0),
                        groundCollider ? Color.green : Color.red);
-                       
+
         return groundCollider != null;
     }
 
