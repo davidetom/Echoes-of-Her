@@ -83,6 +83,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float manaSpellCost = 0.33f;
     [SerializeField] float timeBetweenCast = 0.5f;
     float timeSinceCast;
+    private float castOrHealTimer;
+    [SerializeField] float castHoldThreshold = 0.15f;
+    private bool isButtonHeld = false;
     [SerializeField] float spellDamage;
     [SerializeField] float downSpellForce;
     [SerializeField] GameObject sideSpellFireball;
@@ -118,7 +121,7 @@ public class PlayerController : MonoBehaviour
         {
             Instance = this;
         }
-        Health = maxHealth;
+        DontDestroyOnLoad(gameObject);
         
         // Ottieni il collider del giocatore
         playerCollider = GetComponent<Collider2D>();
@@ -167,6 +170,8 @@ public class PlayerController : MonoBehaviour
 
         Mana = mana;
         manaStorage.fillAmount = Mana;
+
+        Health = maxHealth;
     }
 
     //Per visualizzare le hitbox degli attacchi
@@ -230,6 +235,24 @@ public class PlayerController : MonoBehaviour
         xAxis = Input.GetAxisRaw("Horizontal");
         yAxis = Input.GetAxisRaw("Vertical");
         attack = Input.GetButtonDown("Attack");
+
+        if (Input.GetButtonDown("Cast/Heal"))
+        {
+            isButtonHeld = false;
+        }
+
+        if (Input.GetButton("Cast/Heal"))
+        {
+            castOrHealTimer += Time.deltaTime;
+            if (castOrHealTimer >= castHoldThreshold && !isButtonHeld)
+            {
+                isButtonHeld = true;
+            }
+        }
+        else
+        {
+            castOrHealTimer = 0;
+        }
     }
 
     //Gestione della rotazione della sprite 
@@ -317,7 +340,8 @@ public class PlayerController : MonoBehaviour
 
         //Durante il dash la gravità non ha effetto
         rb.gravityScale = 0;
-        rb.linearVelocity = new Vector2(transform.localScale.x * dashSpeed, 0);
+        int dir = pState.lookingRight ? 1 : -1;
+        rb.linearVelocity = new Vector2(dir * dashSpeed, 0);
         
         //Effetto del dash
         if(Grounded() && dashEffect != null) 
@@ -581,6 +605,7 @@ public class PlayerController : MonoBehaviour
     //Gestione danno
     public void TakeDamage(float damage, Vector2Int hitDirection)
     {
+        pState.beenHit = true;
         Health -= Mathf.RoundToInt(damage);
         RecoilFromHit(hitDirection);
         StartCoroutine(StopTakingDamage());
@@ -604,13 +629,13 @@ public class PlayerController : MonoBehaviour
         {
             Debug.LogError("Impossibile creare l'effetto sangue!");
         }
-        
+
         // Triggera l'animazione di danno
         if (anim != null)
         {
             anim.SetTrigger("TakeDamage");
         }
-        
+
         // Attiva l'attraversamento nemici DOPO aver gestito l'effetto sangue
         EnableEnemyPhasing(true);
 
@@ -618,11 +643,12 @@ public class PlayerController : MonoBehaviour
 
         EnableEnemyPhasing(false);
         pState.invincible = false;
+        pState.beenHit = false;
     }
 
     void FlashWhileInvincible()
     {
-        sr.material.color = pState.invincible ? 
+        sr.material.color = pState.beenHit ? 
                             Color.Lerp(Color.white, Color.black, Mathf.PingPong(Time.time * hitFlashSpeed, 1.0f)) : Color.white;
     }
 
@@ -647,7 +673,7 @@ public class PlayerController : MonoBehaviour
     //Gestione della cura
     void Heal()
     {
-        if(Input.GetButton("Heal") && Health < maxHealth && Mana > 0 && !pState.jumping && !pState.dashing)
+        if(Input.GetButton("Cast/Heal") && isButtonHeld && Health < maxHealth && Mana > 0 && !pState.jumping && !pState.dashing)
         {
             pState.healing = true;
             anim.SetBool("Healing", true);
@@ -687,7 +713,7 @@ public class PlayerController : MonoBehaviour
     //Gestione incantesimi
     void CastSpell()
     {
-        if (Input.GetButtonDown("CastSpell") && timeSinceCast >= timeBetweenCast && Mana >= manaSpellCost)
+        if (Input.GetButtonUp("Cast/Heal") && !isButtonHeld && timeSinceCast >= timeBetweenCast && Mana >= manaSpellCost)
         {
             pState.casting = true;
             timeSinceCast = 0;
@@ -880,27 +906,24 @@ public class PlayerController : MonoBehaviour
     //Gestione del salto
     void Jump()
     {
-        if(!pState.jumping)
+        // Gestione del salto iniziale (da terra)
+        if(jumpBufferCounter > 0 && coyoteTimeCounter > 0 && !pState.jumping)
         {
-            // Gestione del salto iniziale (da terra)
-            if(jumpBufferCounter > 0 && coyoteTimeCounter > 0)
-            {
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0); // Azzera velocità Y prima del salto
-                rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-                pState.jumping = true;
-                airJumpCounter = 0;
-                jumpBufferCounter = 0; // Reset jump buffer dopo il salto
-                coyoteTimeCounter = 0; // Reset anche del coyote time
-            }
-            //Gestione del salto aereo
-            else if(!Grounded() && airJumpCounter < maxAirJumps && Input.GetButtonDown("Jump"))
-            {
-                // Anche per il salto aereo, azzera la velocità Y prima di saltare
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
-                rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-                pState.jumping = true;
-                airJumpCounter++; //Incremento il contatore dei salti aerei
-            }
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0); // Azzera velocità Y prima del salto
+            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            pState.jumping = true;
+            airJumpCounter = 0;
+            jumpBufferCounter = 0; // Reset jump buffer dopo il salto
+            coyoteTimeCounter = 0; // Reset anche del coyote time
+        }
+        //Gestione del salto aereo
+        else if(!Grounded() && airJumpCounter < maxAirJumps && Input.GetButtonDown("Jump"))
+        {
+            // Anche per il salto aereo, azzera la velocità Y prima di saltare
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
+            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            pState.jumping = true;
+            airJumpCounter++; //Incremento il contatore dei salti aerei
         }
 
         //Gestione del salto regolabile
