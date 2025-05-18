@@ -56,6 +56,13 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    // Per completezza, aggiungiamo anche OnDisable per garantire la pulizia dell'evento
+    protected virtual void OnDisable()
+    {
+        // Non necessario fare nulla qui per l'evento statico,
+        // ma potrebbe essere un buon posto per la pulizia di altre risorse
+    }
+
     // Update is called once per frame
     protected virtual void Update()
     {

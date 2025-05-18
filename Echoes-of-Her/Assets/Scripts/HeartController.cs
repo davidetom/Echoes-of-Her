@@ -49,12 +49,6 @@ public class HeartController : MonoBehaviour
         Debug.Log($"Creati {heartContainers.Length} contenitori di cuori");
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     void SetHeartContainers()
     {
         for(int i = 0; i < heartContainers.Length; i++)

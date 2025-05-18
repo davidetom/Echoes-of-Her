@@ -122,6 +122,14 @@ public class PlayerController : MonoBehaviour
             Instance = this;
         }
         DontDestroyOnLoad(gameObject);
+
+        // Inizializzazione playerStateList anticipata
+        pState = GetComponent<PlayerStateList>();
+        if (pState == null)
+        {
+            Debug.LogWarning("PlayerStateList non trovato, verrà aggiunto automaticamente");
+            pState = gameObject.AddComponent<PlayerStateList>();
+        }
         
         // Ottieni il collider del giocatore
         playerCollider = GetComponent<Collider2D>();
@@ -198,6 +206,8 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (pState.cutscene) return;
+        
         GetInputs();
         UpdateJumpVariables();
         ManageDashState();
@@ -225,6 +235,8 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (pState.cutscene) return;
+        
         if (pState.dashing) return;
         Recoil();
     }
@@ -356,6 +368,30 @@ public class PlayerController : MonoBehaviour
     {
         yield return new WaitForSeconds(dashCoolDown);
         canDash = true;
+    }
+
+    //Gestion del cambio scena
+    public IEnumerator WalkIntoNewScene(Vector2 exitDir, float delay)
+    {
+        pState.invincible = true;
+        //Se la direzione di uscia è verso l'alto
+        if (exitDir.y > 0)
+        {
+            rb.linearVelocity = jumpForce * exitDir;
+        }
+
+        //Se la direzione di uscita richiede movimento orizzontale
+        if (exitDir.x != 0)
+        {
+            xAxis = exitDir.x > 0 ? 1 : -1;
+
+            Move();
+        }
+
+        Flip();
+        yield return new WaitForSeconds(delay);
+        pState.invincible = false;
+        pState.cutscene = false;
     }
 
     //GESTIONE LOGICA DELL'ATTACCO
@@ -705,7 +741,7 @@ public class PlayerController : MonoBehaviour
             if(mana != value)
             {
                 mana = Mathf.Clamp(value, 0, 1);
-                manaStorage.fillAmount = Mana;
+                manaStorage.fillAmount = mana;
             }
         }
     }
@@ -809,18 +845,33 @@ public class PlayerController : MonoBehaviour
         // Trova tutti i nemici nella scena
         Enemy[] enemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
         
+        // Verifica che abbiamo trovato nemici
+        if (enemies == null || enemies.Length == 0)
+        {
+            Debug.Log("Nessun nemico trovato nella scena");
+            return;
+        }
         
         foreach (Enemy enemy in enemies)
         {
+            if(enemy == null) continue;
+
             Collider2D[] enemyColliders = enemy.GetComponents<Collider2D>();
             
+            if (enemyColliders == null || enemyColliders.Length == 0) continue;
+
             foreach (Collider2D enemyCollider in enemyColliders)
             {
                 if (enable)
                 {
                     // Ignora collisioni con questo nemico
                     Physics2D.IgnoreCollision(playerCollider, enemyCollider, true);
-                    ignoredEnemyColliders.Add(enemyCollider);
+                    
+                    // Aggiungi alla lista solo se non c'è già
+                    if (!ignoredEnemyColliders.Contains(enemyCollider))
+                    {
+                        ignoredEnemyColliders.Add(enemyCollider);
+                    }
                 }
                 else
                 {
@@ -840,23 +891,37 @@ public class PlayerController : MonoBehaviour
     // Metodo per gestire nuovi nemici che potrebbero apparire durante l'invincibilità
     void OnEnable()
     {
+        Enemy.OnEnemySpawned -= HandleNewEnemySpawned;
         Enemy.OnEnemySpawned += HandleNewEnemySpawned;
     }
     
     void OnDisable()
     {
         Enemy.OnEnemySpawned -= HandleNewEnemySpawned;
+
+        // Pulizia delle referenze ai collider ignorati
+        if (ignoredEnemyColliders != null)
+        {
+            ignoredEnemyColliders.Clear();
+        }
     }
     
     void HandleNewEnemySpawned(Enemy newEnemy)
     {
-        if (pState.invincible && playerCollider != null)
+        // Controlla sia che siamo in stato di invincibilità sia che playerCollider non sia null
+        if (pState != null && pState.invincible && playerCollider != null && newEnemy != null)
         {
             Collider2D[] enemyColliders = newEnemy.GetComponents<Collider2D>();
-            foreach (Collider2D enemyCollider in enemyColliders)
+            if (enemyColliders != null)
             {
-                Physics2D.IgnoreCollision(playerCollider, enemyCollider, true);
-                ignoredEnemyColliders.Add(enemyCollider);
+                foreach (Collider2D enemyCollider in enemyColliders)
+                {
+                    if (enemyCollider != null)
+                    {
+                        Physics2D.IgnoreCollision(playerCollider, enemyCollider, true);
+                        ignoredEnemyColliders.Add(enemyCollider);
+                    }
+                }
             }
         }
     }
