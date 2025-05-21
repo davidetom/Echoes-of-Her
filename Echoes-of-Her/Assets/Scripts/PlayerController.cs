@@ -415,7 +415,8 @@ public class PlayerController : MonoBehaviour
             {
                 if(SideAttackTransform != null)
                 {
-                    Hit(SideAttackTransform, SideAttackArea, ref pState.recoilingX, recoilXSpeed);
+                    int recoilLeftOrRight = pState.lookingRight ? 1 : -1;
+                    Hit(SideAttackTransform, SideAttackArea, ref pState.recoilingX, Vector2.right * recoilLeftOrRight, recoilXSpeed);
 
                     if(slashEffect != null)
                     {
@@ -428,7 +429,7 @@ public class PlayerController : MonoBehaviour
             {
                 if(UpAttackTransform != null)
                 {
-                    Hit(UpAttackTransform, UpAttackArea, ref pState.recoilingY, recoilYSpeed);
+                    Hit(UpAttackTransform, UpAttackArea, ref pState.recoilingY, Vector2.up, recoilYSpeed);
                     
                     if(slashEffect != null)
                     {
@@ -448,7 +449,7 @@ public class PlayerController : MonoBehaviour
             {
                 if(DownAttackTransform != null)
                 {
-                    Hit(DownAttackTransform, DownAttackArea, ref pState.recoilingY, recoilYSpeed);
+                    Hit(DownAttackTransform, DownAttackArea, ref pState.recoilingY, Vector2.down, recoilYSpeed);
                     if(slashEffect != null)
                     {
                         if(pState.lookingRight)
@@ -466,7 +467,7 @@ public class PlayerController : MonoBehaviour
     }
 
     //Gestione del colpo
-    private void Hit(Transform attackTransform, Vector2 attackArea, ref bool recoilDir, float recoilStrength)
+    private void Hit(Transform attackTransform, Vector2 attackArea, ref bool recoilBool, Vector2 recoilDir, float recoilStrength)
     {
         Collider2D[] objectsToHit = Physics2D.OverlapBoxAll(attackTransform.position, attackArea, 0, attackableLayer);
         List<Enemy> hitEnemies = new List<Enemy>();
@@ -475,15 +476,15 @@ public class PlayerController : MonoBehaviour
         if(objectsToHit.Length > 0)
         {
             //...va attivato il rinculo
-            recoilDir = true;
+            recoilBool = true;
 
             // Reset dei timer di rinculo quando colpiamo qualcosa
-            if (recoilDir == pState.recoilingX)
+            if (recoilBool == pState.recoilingX)
             {
                 recoilTimerX = 0f;
                 recoilDirectionX = -transform.localScale.x;
             }
-            else if (recoilDir == pState.recoilingY)
+            else if (recoilBool == pState.recoilingY)
             {
                 recoilTimerY = 0f;
                 recoilDirectionY = yAxis < 0 ? 1f : -1f;
@@ -503,7 +504,7 @@ public class PlayerController : MonoBehaviour
                 hitPoint = enemyCollider.ClosestPoint(transform.position);
                 hitDirection = (transform.position - objectsToHit[i].transform.position).normalized;
 
-                enemy.EnemyHit(damage, hitDirection, recoilStrength);
+                enemy.EnemyHit(damage, recoilDir, recoilStrength);
                 hitEnemies.Add(enemy);
 
                 Mana += manaGain;

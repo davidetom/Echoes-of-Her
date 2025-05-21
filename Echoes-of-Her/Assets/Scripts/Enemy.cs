@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
@@ -12,32 +13,51 @@ public class Enemy : MonoBehaviour
     [SerializeField] protected bool isRecoiling = false;
     [Space(5)]
 
-    [Header("Ground Check Settings:")]
-    [SerializeField] protected Transform groundCheckPoint;
-    [SerializeField] protected float groundCheckY = 0.2f;
-    [SerializeField] protected float groundCheckX = 0.5f;
-    [SerializeField] protected LayerMask whatIsGround;
-    [Space(5)]
-
-    [SerializeField] protected PlayerController player;
     [SerializeField] protected HitFreezeDetection freezeDetector;
+
     [SerializeField] protected float speed;  
 
     [SerializeField] protected float damage;
+    [SerializeField] protected GameObject orangeBlood;
 
     protected float recoilTimer;
     protected Rigidbody2D rb;
+    protected SpriteRenderer sr;
+    protected Animator anim;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    protected virtual void Start()
+    protected enum EnemyStates
     {
+        //Crawler
+        Crawler_Idle,
+        Crawler_Flip,
 
+        //Bat
+        Bat_Idle,
+        Bat_Chase,
+        Bat_Stunned,
+        Bat_Death,
+    }
+    protected EnemyStates currentEnemyStates;
+
+    protected virtual EnemyStates GetCurrentEnemyState
+    {
+        get { return currentEnemyStates; }
+        set
+        {
+            if (currentEnemyStates != value)
+            {
+                currentEnemyStates = value;
+
+                ChangeCurrentAnimation();
+            }
+        }
     }
 
-    protected virtual void Awake()
+    protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        player = PlayerController.Instance;
+        sr = GetComponent<SpriteRenderer>();
+        anim = GetComponent<Animator>();
 
         freezeDetector = GetComponent<HitFreezeDetection>();
         if (freezeDetector == null)
@@ -66,41 +86,18 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     protected virtual void Update()
     {
-        ManageDeath();
+        if (health <= 0)
+        {
+            Death(0.05f);
+        }
         ManageRecoil();
     }
 
-    //Gestione controllo del terreno
-    protected virtual bool Grounded()
+    protected void ManageRecoil()
     {
-        if (groundCheckPoint == null) return false;
-        
-        // Utilizzio di OverlapBox
-        Vector2 boxCenter = groundCheckPoint.position;
-        Vector2 boxSize = new Vector2(groundCheckX * 2, groundCheckY * 0.5f);
-        
-        // Box sotto i piedi del personaggio
-        Collider2D groundCollider = Physics2D.OverlapBox(
-            boxCenter + Vector2.down * groundCheckY * 0.75f, 
-            boxSize, 
-            0f, 
-            whatIsGround
-        );
-        
-        // Debug visivo
-        Debug.DrawLine(boxCenter + new Vector2(-boxSize.x/2, 0), 
-                       boxCenter + new Vector2(boxSize.x/2, 0), 
-                       groundCollider ? Color.green : Color.red);
-                       
-        return groundCollider != null;
-    }
-
-
-    void ManageRecoil()
-    {
-        if(isRecoiling)
+        if (isRecoiling)
         {
-            if(recoilTimer < recoilLength)
+            if (recoilTimer < recoilLength)
             {
                 recoilTimer += Time.deltaTime;
             }
@@ -110,6 +107,10 @@ public class Enemy : MonoBehaviour
                 recoilTimer = 0;
             }
         }
+        else
+        {
+            UpdateEnemyStates();
+        }
     }
 
     virtual public void EnemyHit(float damageDone, Vector2 hitDirection, float hitForce)
@@ -117,7 +118,9 @@ public class Enemy : MonoBehaviour
         health -= damageDone;
         if(!isRecoiling)
         {
-            rb.AddForce(-hitForce * recoilFactor * hitDirection);
+            GameObject _orangeBlood = Instantiate(orangeBlood, transform.position, Quaternion.identity);
+            Destroy(_orangeBlood, 3f);
+            rb.linearVelocity = (hitForce * recoilFactor * hitDirection);
             isRecoiling = true;
         }
     }
@@ -156,7 +159,7 @@ public class Enemy : MonoBehaviour
             
             // Direct reference to player instead of using the tag
             PlayerController playerController = other.GetComponent<PlayerController>();
-            if (playerController != null && !playerController.pState.invincible)
+            if (playerController != null && !playerController.pState.invincible && health > 0)
             {
                 Attack();
                 freezeDetector.HitManager(hitPoint, hitDirection);
@@ -164,22 +167,25 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    protected virtual void UpdateEnemyStates() { }
+
+    protected virtual void ChangeCurrentAnimation() { }
+
+    protected void ChangeState(EnemyStates newState)
+    {
+        GetCurrentEnemyState = newState;
+    }
     protected virtual void Attack()
     {
         Vector2Int hitDirection = new Vector2Int(
-            (int) Mathf.Sign(player.transform.position.x - transform.position.x),
-            (int) Mathf.Sign(player.transform.position.y - transform.position.y)
+            (int)Mathf.Sign(PlayerController.Instance.transform.position.x - transform.position.x),
+            (int)Mathf.Sign(PlayerController.Instance.transform.position.y - transform.position.y)
             );
-        player.TakeDamage(damage, hitDirection);
+        PlayerController.Instance.TakeDamage(damage, hitDirection);
     }
 
-    protected virtual void ManageDeath()
+    protected virtual void Death(float deathTime)
     {
-        if(health <= 0) Die();
-    }
-
-    void Die()
-    {
-        Destroy(gameObject);
+            Destroy(gameObject, deathTime);
     }
 }
