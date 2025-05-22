@@ -36,6 +36,11 @@ public class Enemy : MonoBehaviour
         Bat_Chase,
         Bat_Stunned,
         Bat_Death,
+
+        //Charger
+        Charger_Idle,
+        Charger_Surprised,
+        Charger_Charge
     }
     protected EnemyStates currentEnemyStates;
 
@@ -113,14 +118,14 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    virtual public void EnemyHit(float damageDone, Vector2 hitDirection, float hitForce)
+    virtual public void EnemyHit(float damageDone, Vector2 _hitDirection, float hitForce)
     {
         health -= damageDone;
         if(!isRecoiling)
         {
             GameObject _orangeBlood = Instantiate(orangeBlood, transform.position, Quaternion.identity);
             Destroy(_orangeBlood, 3f);
-            rb.linearVelocity = (hitForce * recoilFactor * hitDirection);
+            rb.linearVelocity = (hitForce * recoilFactor * _hitDirection);
             isRecoiling = true;
         }
     }
@@ -155,14 +160,14 @@ public class Enemy : MonoBehaviour
 
             Collider2D playerCollider = other.GetComponent<Collider2D>();
             Vector2 hitPoint = playerCollider.ClosestPoint(transform.position);
-            Vector2 hitDirection = (transform.position - playerCollider.transform.position).normalized;
+            Vector2 _hitDirection = (transform.position - playerCollider.transform.position).normalized;
             
             // Direct reference to player instead of using the tag
             PlayerController playerController = other.GetComponent<PlayerController>();
             if (playerController != null && !playerController.pState.invincible && health > 0)
             {
                 Attack();
-                freezeDetector.HitManager(hitPoint, hitDirection);
+                freezeDetector.HitManager(hitPoint, _hitDirection);
             }
         }
     }
@@ -177,11 +182,11 @@ public class Enemy : MonoBehaviour
     }
     protected virtual void Attack()
     {
-        Vector2Int hitDirection = new Vector2Int(
+        Vector2Int _hitDirection = new Vector2Int(
             (int)Mathf.Sign(PlayerController.Instance.transform.position.x - transform.position.x),
             (int)Mathf.Sign(PlayerController.Instance.transform.position.y - transform.position.y)
             );
-        PlayerController.Instance.TakeDamage(damage, hitDirection);
+        PlayerController.Instance.TakeDamage(damage, _hitDirection);
     }
 
     protected virtual void Death(float deathTime)

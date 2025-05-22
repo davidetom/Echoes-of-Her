@@ -32,6 +32,7 @@ public class Bat : Enemy
         {
             isDying = true;
             ChangeState(EnemyStates.Bat_Death);
+            rb.gravityScale = 12;
             return;
         }
 
@@ -52,8 +53,7 @@ public class Bat : Enemy
                 if (!isRecoiling && health > 0) // Muoviti solo se non stai subendo recoil
                 {
                     // Segui il giocatore con un movimento fluido
-                    Vector2 direction = (PlayerController.Instance.transform.position - transform.position).normalized;
-                    rb.linearVelocity = direction * speed;
+                    transform.position = Vector2.MoveTowards(transform.position, PlayerController.Instance.transform.position, speed * Time.deltaTime);
 
                     // Ruota il pipistrello verso il giocatore
                     FlipBat();
@@ -80,6 +80,7 @@ public class Bat : Enemy
                     {
                         isDying = true;
                         ChangeState(EnemyStates.Bat_Death);
+                        rb.gravityScale = 12;
                     }
                     timer = 0;
                 }
@@ -91,7 +92,6 @@ public class Bat : Enemy
                     // Inizializza la morte solo una volta
                     deathAnimationStarted = true;
                     rb.linearVelocity = Vector2.zero;
-                    rb.gravityScale = 12;
                     timer = 0;
                     
                     Debug.Log("Death animation started for " + gameObject.name);
@@ -150,6 +150,7 @@ public class Bat : Enemy
         {
             isDying = true;
             ChangeState(EnemyStates.Bat_Death);
+            rb.gravityScale = 12;
         }
     }
 

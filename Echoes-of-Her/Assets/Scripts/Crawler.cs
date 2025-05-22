@@ -16,24 +16,12 @@ public class Crawler : Enemy
         rb.gravityScale = 12f;
     }
 
-    private void ChasePlayer()
-    {
-        if (!isRecoiling)
-        {
-            // Calculate direction to player (only on X axis)
-            float direction = Mathf.Sign(PlayerController.Instance.transform.position.x - transform.position.x);
-
-            // Apply velocity instead of directly moving transform
-            rb.linearVelocity = new Vector2(direction * speed, rb.linearVelocity.y);
-
-            // Optional: Face the player
-            transform.localScale = new Vector3(direction * transform.localScale.x, transform.localScale.y, transform.localScale.z);
-        }
-    }
-
     protected override void UpdateEnemyStates()
     {
-        Death(0.05f);
+        if (health <= 0)
+        {
+            Death(0.05f);   
+        }
         switch (GetCurrentEnemyState)
         {
             case EnemyStates.Crawler_Idle:
