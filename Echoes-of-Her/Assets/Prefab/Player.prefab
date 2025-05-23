@@ -324,9 +324,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingLayerID: -1333304823
+  m_SortingLayer: 3
+  m_SortingOrder: 10
   m_Sprite: {fileID: 21300000, guid: 84ce2f114ad12bd4ebafc77060220324, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -452,7 +452,7 @@ MonoBehaviour:
   maxAirJumps: 1
   groundCheckPoint: {fileID: 7716316754988884760}
   groundCheckY: 0.2
-  groundCheckX: 0.5
+  groundCheckX: 0.3
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
@@ -473,8 +473,8 @@ MonoBehaviour:
   damage: 1
   slashEffect: {fileID: 2606719574980408641, guid: 772f051cad1bd4f0c82ba87301c43f8c, type: 3}
   recoilDuration: 0.2
-  recoilXSpeed: 100
-  recoilYSpeed: 32
+  recoilXSpeed: 10
+  recoilYSpeed: 10
   maxHealth: 5
   health: 0
   bloodSpurt: {fileID: 6071214335566039200, guid: 2bc26b13a1e2640939648cc57a62051a, type: 3}
@@ -486,6 +486,7 @@ MonoBehaviour:
   manaGain: 0.111
   manaSpellCost: 0.33
   timeBetweenCast: 0.5
+  castHoldThreshold: 0.15
   spellDamage: 3
   downSpellForce: 2
   sideSpellFireball: {fileID: 4006913610421729634, guid: 223bcebdee10a4ce0a242d64b9899c3a, type: 3}
@@ -494,6 +495,7 @@ MonoBehaviour:
   spellInvincibilityDuration: 0.5
   downSpellMaxVelocity: 15
   pState: {fileID: 0}
+  rb: {fileID: 0}
 --- !u!114 &1250616408162099979
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -514,8 +516,10 @@ MonoBehaviour:
   recoilingFromHitHorizontal: 0
   lookingRight: 0
   invincible: 0
+  beenHit: 0
   healing: 0
   casting: 0
+  cutscene: 0
 --- !u!114 &499971425653876641
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -528,7 +532,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64e53f7b0ab5148209db108cf506f792, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  freezeDuration: 0.1
+  freezeDuration: 0.15
   hitParticlePrefab: {fileID: 0}
   cameraShakeIntensity: 0.2
   hitSoundEffect: {fileID: 0}

@@ -131,8 +131,9 @@ public class Bat : Enemy
                 anim.SetBool("Stunned", true);
                 break;
             case EnemyStates.Bat_Death:
-                Debug.Log("Setting Death trigger for " + gameObject.name);
                 anim.SetTrigger("Death");
+                int LayerIgnorePlayer = LayerMask.NameToLayer("Ignore Player");
+                gameObject.layer = LayerIgnorePlayer;
                 break;
         }
     }

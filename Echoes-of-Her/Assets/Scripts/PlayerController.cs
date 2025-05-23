@@ -100,7 +100,7 @@ public class PlayerController : MonoBehaviour
     [HideInInspector] public PlayerStateList pState;
     private HitFreezeDetection freezeDetector;
     private Animator anim;
-    private Rigidbody2D rb;
+    public Rigidbody2D rb;
     private SpriteRenderer sr;
     private float xAxis, yAxis;
     private float gravity;
