@@ -520,6 +520,7 @@ MonoBehaviour:
   healing: 0
   casting: 0
   cutscene: 0
+  alive: 1
 --- !u!114 &499971425653876641
 MonoBehaviour:
   m_ObjectHideFlags: 0

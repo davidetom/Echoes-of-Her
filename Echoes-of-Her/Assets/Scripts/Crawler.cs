@@ -22,6 +22,11 @@ public class Crawler : Enemy
         {
             Death(0.05f);   
         }
+        
+        if (PlayerController.Instance == null) return;
+
+        if (!PlayerController.Instance.pState.alive) return;
+
         switch (GetCurrentEnemyState)
         {
             case EnemyStates.Crawler_Idle:
@@ -46,7 +51,7 @@ public class Crawler : Enemy
                     }
                 }
                 break;
-                
+
             case EnemyStates.Crawler_Flip:
                 timer += Time.deltaTime;
                 if (timer > flipWaitTime)

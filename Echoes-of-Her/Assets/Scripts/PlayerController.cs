@@ -207,21 +207,25 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         if (pState.cutscene) return;
-        
-        GetInputs();
-        UpdateJumpVariables();
-        ManageDashState();
 
-        if (pState.dashing) return;
+        if (pState.alive)
+        {
+            GetInputs();
 
-        Flip();
-        Move();
-        Jump();
-        StartDash();
-        Attack();
-        FlashWhileInvincible();
-        Heal();
-        CastSpell();
+            UpdateJumpVariables();
+            ManageDashState();
+
+            if (pState.dashing) return;
+
+            Flip();
+            Move();
+            Jump();
+            StartDash();
+            Attack();
+            FlashWhileInvincible();
+            Heal();
+            CastSpell();
+        }
     }
 
     //Per incantesimi verso l'alto e il basso
@@ -644,7 +648,15 @@ public class PlayerController : MonoBehaviour
     {
         pState.beenHit = true;
         Health -= Mathf.RoundToInt(damage);
-        RecoilFromHit(hitDirection);
+        if (Health == 0)
+        {
+            Death();
+        }
+        else
+        {
+            RecoilFromHit(hitDirection);
+        }
+        
         StartCoroutine(StopTakingDamage());
     }
 
@@ -731,6 +743,30 @@ public class PlayerController : MonoBehaviour
             anim.SetBool("Healing", false);
             healTimer = 0;
         }
+    }
+
+    private void Death()
+    {
+        pState.alive = false;
+        anim.SetTrigger("Death");
+        anim.SetBool("Walking", false);
+        StartCoroutine(RespawnPoint());
+        rb.linearVelocity = Vector2.zero;
+    }
+
+    public IEnumerator RespawnPoint()
+    {
+        pState.cutscene = true;
+        pState.invincible = true;
+        Time.timeScale = 0;
+        StartCoroutine(UIManager.Instance.sceneFader.Fade(SceneFader.FadeDirection.In));
+        yield return new WaitForSecondsRealtime(1);
+        transform.position = GameManager.Instance.platformingRespawnPoint;
+        StartCoroutine(UIManager.Instance.sceneFader.Fade(SceneFader.FadeDirection.Out));
+        yield return new WaitForSecondsRealtime(UIManager.Instance.sceneFader.fadeTime);
+        pState.cutscene = false;
+        pState.invincible = false;
+        Time.timeScale = 1;
     }
 
     //Gestione del mana

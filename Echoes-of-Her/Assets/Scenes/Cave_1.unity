@@ -7898,11 +7898,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8292696187368679155, guid: a690dfa3d386c438ab11180da5aebdf8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 17.09
+      value: 17.15
       objectReference: {fileID: 0}
     - target: {fileID: 8292696187368679155, guid: a690dfa3d386c438ab11180da5aebdf8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 10.46
+      value: 10.15
       objectReference: {fileID: 0}
     - target: {fileID: 8292696187368679155, guid: a690dfa3d386c438ab11180da5aebdf8, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8168,38 +8168,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 499971425653876641, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
-      propertyPath: freezeDuration
-      value: 0.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 5460428787234325001, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
-      propertyPath: m_SortingLayer
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 5460428787234325001, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
-      propertyPath: m_SortingOrder
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 5460428787234325001, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
-      propertyPath: m_SortingLayerID
-      value: -1333304823
-      objectReference: {fileID: 0}
     - target: {fileID: 7085363240374558293, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
       propertyPath: manaStorage
       value: 
       objectReference: {fileID: 909310662}
-    - target: {fileID: 7085363240374558293, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
-      propertyPath: groundCheckX
-      value: 0.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 7085363240374558293, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
-      propertyPath: recoilXSpeed
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 7085363240374558293, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
-      propertyPath: recoilYSpeed
-      value: 10
-      objectReference: {fileID: 0}
     - target: {fileID: 7940990077370543023, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
       propertyPath: m_Name
       value: Player
@@ -8317,10 +8289,6 @@ PrefabInstance:
     - target: {fileID: 8919305493166338062, guid: e64fdfedff73349dca50245d045be2b2, type: 3}
       propertyPath: m_Name
       value: Charger
-      objectReference: {fileID: 0}
-    - target: {fileID: 8919305493166338062, guid: e64fdfedff73349dca50245d045be2b2, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

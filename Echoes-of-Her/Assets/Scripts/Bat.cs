@@ -27,6 +27,8 @@ public class Bat : Enemy
     {
         if (PlayerController.Instance == null) return;
 
+        if (!PlayerController.Instance.pState.alive) return;
+
         // Gestisce la morte prima di qualsiasi altro stato
         if (health <= 0 && !isDying)
         {

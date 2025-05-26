@@ -29,6 +29,11 @@ public class Charger : Enemy
         {
             Death(0.05f);
         }
+
+        if (PlayerController.Instance == null) return;
+
+        if (!PlayerController.Instance.pState.alive) return;
+
         Vector3 ledgeCheckStart = transform.localScale.x > 0 ? new Vector3(ledgeChechX, 0) : new Vector3(-ledgeChechX, 0);
         Vector2 wallChechDir = transform.localScale.x > 0 ? transform.right : -transform.right;
         direzione = wallChechDir;
