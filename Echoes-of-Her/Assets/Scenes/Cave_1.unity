@@ -8045,14 +8045,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Crawler
       objectReference: {fileID: 0}
-    - target: {fileID: 6103125455548455166, guid: a690dfa3d386c438ab11180da5aebdf8, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6499972907233225052, guid: a690dfa3d386c438ab11180da5aebdf8, type: 3}
-      propertyPath: health
-      value: 3
-      objectReference: {fileID: 0}
     - target: {fileID: 8292696187368679155, guid: a690dfa3d386c438ab11180da5aebdf8, type: 3}
       propertyPath: m_LocalPosition.x
       value: 17.15
@@ -8232,10 +8224,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bat
       objectReference: {fileID: 0}
-    - target: {fileID: 154712916512433907, guid: b80fab28e0da64f51997ca985a0cbe9b, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2025101581721920348, guid: b80fab28e0da64f51997ca985a0cbe9b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 11.97
@@ -8331,7 +8319,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7085363240374558293, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
       propertyPath: maxHealth
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7085363240374558293, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
       propertyPath: manaStorage
@@ -8458,10 +8446,6 @@ PrefabInstance:
     - target: {fileID: 8919305493166338062, guid: e64fdfedff73349dca50245d045be2b2, type: 3}
       propertyPath: m_Name
       value: Charger
-      objectReference: {fileID: 0}
-    - target: {fileID: 8919305493166338062, guid: e64fdfedff73349dca50245d045be2b2, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
