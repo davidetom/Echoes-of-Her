@@ -3,7 +3,20 @@ using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
+    public SceneFader sceneFader;
+
     public static UIManager Instance;
+
+    [SerializeField] GameObject halfMana, fullMana;
+
+    public enum ManaState
+    {
+        FullMana,
+        HalfMana
+    }
+
+    public ManaState manaState;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -17,11 +30,26 @@ public class UIManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    public SceneFader sceneFader;
-
     private void Start()
     {
         sceneFader = GetComponentInChildren<SceneFader>();
     }
 
+    public void SwitchMana(ManaState _manaState)
+    {
+        switch (_manaState)
+        {
+            case ManaState.FullMana:
+                halfMana.SetActive(false);
+                fullMana.SetActive(true);
+                break;
+
+            case ManaState.HalfMana:
+                halfMana.SetActive(true);
+                fullMana.SetActive(false);
+                break;
+        }
+
+        manaState = _manaState;
+    }
 }

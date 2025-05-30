@@ -4,6 +4,7 @@ using Microsoft.Unity.VisualStudio.Editor;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
@@ -77,6 +78,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float mana;
     [SerializeField] float manaDrainSpeed;
     [SerializeField] float manaGain;
+    public bool halfMana = false;
     [Space(5)]
 
     [Header("Spell Casting Settings:")]
@@ -103,6 +105,8 @@ public class PlayerController : MonoBehaviour
     public Rigidbody2D rb;
     private SpriteRenderer sr;
     private float xAxis, yAxis;
+    public Vector3 lastPosition;
+    public bool lastFacingWasRight;
     private float gravity;
 
     // Aggiungiamo una lista per tenere traccia dei collider dei nemici che stiamo ignorando
@@ -180,6 +184,9 @@ public class PlayerController : MonoBehaviour
         manaStorage.fillAmount = Mana;
 
         Health = maxHealth;
+
+        lastPosition = transform.position;
+        lastFacingWasRight = pState.lookingRight;
     }
 
     //Per visualizzare le hitbox degli attacchi
@@ -215,6 +222,8 @@ public class PlayerController : MonoBehaviour
             UpdateJumpVariables();
             ManageDashState();
 
+            UpdateLastGroundPosition();
+
             if (pState.dashing) return;
 
             Flip();
@@ -225,6 +234,15 @@ public class PlayerController : MonoBehaviour
             FlashWhileInvincible();
             Heal();
             CastSpell();
+        }
+    }
+
+    private void UpdateLastGroundPosition()
+    {
+        if (Grounded())
+        {
+            lastPosition = transform.position;
+            lastFacingWasRight = pState.lookingRight;
         }
     }
 
@@ -646,18 +664,18 @@ public class PlayerController : MonoBehaviour
     //Gestione danno
     public void TakeDamage(float damage, Vector2Int hitDirection)
     {
+        if (!pState.alive || pState.invincible || pState.cutscene) return;
         pState.beenHit = true;
         Health -= Mathf.RoundToInt(damage);
         if (Health == 0)
         {
-            Death();
+            StartCoroutine(Death());
         }
         else
         {
             RecoilFromHit(hitDirection);
+            StartCoroutine(StopTakingDamage());
         }
-        
-        StartCoroutine(StopTakingDamage());
     }
 
     //Gestione i-frames
@@ -665,18 +683,12 @@ public class PlayerController : MonoBehaviour
     {
         pState.invincible = true;
 
-        // Crea l'effetto sangue PRIMA di attivare l'attraversamento nemici
-        GameObject bloodSpurtParticles = Instantiate(bloodSpurt, transform.position, Quaternion.identity);
-        if (bloodSpurtParticles != null)
+        // Crea l'effetto sangue
+        if (bloodSpurt != null)
         {
-            // Assicurati che l'effetto sangue sia visibile e attivo
+            GameObject bloodSpurtParticles = Instantiate(bloodSpurt, transform.position, Quaternion.identity);
             bloodSpurtParticles.SetActive(true);
-            Debug.Log("Effetto sangue creato: " + bloodSpurtParticles.name);
             Destroy(bloodSpurtParticles, 1.5f);
-        }
-        else
-        {
-            Debug.LogError("Impossibile creare l'effetto sangue!");
         }
 
         // Triggera l'animazione di danno
@@ -690,16 +702,25 @@ public class PlayerController : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-        EnableEnemyPhasing(false);
-        pState.invincible = false;
-        pState.beenHit = false;
+        if (pState.alive)
+        {
+            EnableEnemyPhasing(false);
+            pState.invincible = false;
+            pState.beenHit = false;
+        }
     }
 
     void FlashWhileInvincible()
     {
-        sr.material.color = pState.beenHit ? 
-                            Color.Lerp(Color.white, Color.black, Mathf.PingPong(Time.time * hitFlashSpeed, 1.0f)) : Color.white;
-    }
+        if (pState.beenHit && pState.alive)
+        {
+            sr.material.color = Color.Lerp(Color.white, Color.black, Mathf.PingPong(Time.time * hitFlashSpeed, 1.0f));
+        }
+        else
+        {
+            sr.material.color = Color.white;
+        }
+}
 
     //Gestione della salute
     public int Health
@@ -745,39 +766,113 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void Death()
+    IEnumerator Death()
     {
         pState.alive = false;
-        anim.SetTrigger("Death");
-        anim.SetBool("Walking", false);
-        StartCoroutine(RespawnPoint());
-        rb.linearVelocity = Vector2.zero;
-    }
-
-    public IEnumerator RespawnPoint()
-    {
-        pState.cutscene = true;
         pState.invincible = true;
-        Time.timeScale = 0;
-        StartCoroutine(UIManager.Instance.sceneFader.Fade(SceneFader.FadeDirection.In));
-        yield return new WaitForSecondsRealtime(1);
-        transform.position = GameManager.Instance.platformingRespawnPoint;
-        StartCoroutine(UIManager.Instance.sceneFader.Fade(SceneFader.FadeDirection.Out));
-        yield return new WaitForSecondsRealtime(UIManager.Instance.sceneFader.fadeTime);
-        pState.cutscene = false;
-        pState.invincible = false;
-        Time.timeScale = 1;
+        pState.beenHit = false;
+
+        Time.timeScale = 1f;
+
+        rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = gravity;
+
+        anim.SetBool("Walking", false);
+        anim.SetBool("Jumping", false);
+        anim.SetBool("Dashing", false);
+        anim.SetBool("Healing", false);
+        anim.SetBool("Casting", false);
+        anim.SetTrigger("Death");
+
+        pState.dashing = false;
+        pState.jumping = false;
+        pState.healing = false;
+        pState.casting = false;
+        pState.recoilingX = false;
+        pState.recoilingY = false;
+
+        EnableEnemyPhasing(false);
+
+        yield return new WaitForSeconds(0.9f);
+
+        if (!pState.cutscene)
+        {
+            Respawn();
+            anim.Play("player_idle");
+        }
     }
 
+    private void Respawn()
+    {
+        StartCoroutine(GameManager.Instance.Respawn());
+    }
+
+    // Nuovo metodo per resettare tutti gli stati (morte completa)
+    public void ResetAllStates()
+    {
+        // Reset physics
+        rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = gravity;
+
+        // Reset movement states
+        pState.dashing = false;
+        pState.jumping = false;
+        pState.healing = false;
+        pState.casting = false;
+        pState.recoilingX = false;
+        pState.recoilingY = false;
+        pState.recoilingFromHitHorizontal = 0;
+        pState.recoilingFromHitVertical = 0;
+
+        // Reset timers
+        dashTimeCounter = 0f;
+        recoilTimerX = 0f;
+        recoilTimerY = 0f;
+        airJumpCounter = 0;
+
+        // Reset dash
+        isDashing = false;
+        canDash = true;
+        dashed = false;
+
+        // Reset spell states
+        if (isDownSpellActive)
+        {
+            downSpellFireball.SetActive(false);
+            isDownSpellActive = false;
+        }
+
+        // Reset animazioni
+        if (anim != null)
+        {
+            anim.SetBool("Walking", false);
+            anim.SetBool("Jumping", false);
+            anim.SetBool("Dashing", false);
+            anim.SetBool("Healing", false);
+            anim.SetBool("Casting", false);
+        }
+
+        // Assicurati che l'attraversamento nemici sia disattivato
+        EnableEnemyPhasing(false);
+    }
+    
     //Gestione del mana
-    float Mana
+    public float Mana
     {
         get { return mana; }
         set
         {
-            if(mana != value)
+            if (mana != value)
             {
-                mana = Mathf.Clamp(value, 0, 1);
+                if (!halfMana)
+                {
+                    mana = Mathf.Clamp(value, 0, 1);
+                }
+                else
+                {
+                    mana = Mathf.Clamp(value, 0, 0.5f);
+                }
+
                 manaStorage.fillAmount = mana;
             }
         }
