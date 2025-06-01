@@ -6592,6 +6592,14 @@ PrefabInstance:
       propertyPath: halfMana
       value: 
       objectReference: {fileID: 596514604}
+    - target: {fileID: 5980880495062640083, guid: 5b75ecc35eac342cdbbead18615c38b4, type: 3}
+      propertyPath: mapHandler
+      value: 
+      objectReference: {fileID: 2051415733}
+    - target: {fileID: 8065000480916258786, guid: 5b75ecc35eac342cdbbead18615c38b4, type: 3}
+      propertyPath: m_Color.a
+      value: 0.74509805
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7638,6 +7646,11 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &2051415733 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6077981267286772677, guid: 5b75ecc35eac342cdbbead18615c38b4, type: 3}
+  m_PrefabInstance: {fileID: 1495242934}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2101319829
 GameObject:
   m_ObjectHideFlags: 0
@@ -8207,6 +8220,10 @@ PrefabInstance:
       propertyPath: deathStonePrefab
       value: 
       objectReference: {fileID: 5456380620132716371, guid: 4ad33bc7820c0431782ace32c440b16c, type: 3}
+    - target: {fileID: 6330103582498439420, guid: be2c455b9a349438a822083928ac073a, type: 3}
+      propertyPath: whatIsGround.m_Bits
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8223,6 +8240,10 @@ PrefabInstance:
     - target: {fileID: 154712916512433907, guid: b80fab28e0da64f51997ca985a0cbe9b, type: 3}
       propertyPath: m_Name
       value: Bat
+      objectReference: {fileID: 0}
+    - target: {fileID: 154712916512433907, guid: b80fab28e0da64f51997ca985a0cbe9b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2025101581721920348, guid: b80fab28e0da64f51997ca985a0cbe9b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8279,11 +8300,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 49739271174541564, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5.75
+      value: 5.8
       objectReference: {fileID: 0}
     - target: {fileID: 49739271174541564, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 3.66
+      value: 3.03
       objectReference: {fileID: 0}
     - target: {fileID: 49739271174541564, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8390,6 +8411,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 8260847929421313543, guid: 1f77272184939418b9918c8be80277c1, type: 3}
+      propertyPath: m_Size.x
+      value: 5.796385
+      objectReference: {fileID: 0}
+    - target: {fileID: 8260847929421313543, guid: 1f77272184939418b9918c8be80277c1, type: 3}
+      propertyPath: m_Offset.x
+      value: 0.1620264
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8446,6 +8475,10 @@ PrefabInstance:
     - target: {fileID: 8919305493166338062, guid: e64fdfedff73349dca50245d045be2b2, type: 3}
       propertyPath: m_Name
       value: Charger
+      objectReference: {fileID: 0}
+    - target: {fileID: 8919305493166338062, guid: e64fdfedff73349dca50245d045be2b2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

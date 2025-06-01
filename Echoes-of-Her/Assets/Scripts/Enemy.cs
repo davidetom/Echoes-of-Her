@@ -131,12 +131,12 @@ public class Enemy : MonoBehaviour
     }
 
     // Changed to OnTriggerEnter2D and OnCollisionEnter2D for more reliability
-    protected void OnTriggerEnter2D(Collider2D other)
+    protected virtual void OnTriggerEnter2D(Collider2D other)
     {
         CheckForPlayerCollision(other.gameObject);
     }
     
-    protected void OnCollisionEnter2D(Collision2D collision)
+    protected virtual void OnCollisionEnter2D(Collision2D collision)
     {
         CheckForPlayerCollision(collision.gameObject);
     }

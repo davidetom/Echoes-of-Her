@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     [Header("DeathStone Settings:")]
     [SerializeField] private GameObject deathStonePrefab; // Assegna il prefab DeathStone nell'Inspector
     private GameObject currentDeathStone; // Riferimento alla DeathStone attualmente presente
+    private bool airDeath;
 
     public static GameManager Instance { get; private set; }
 
@@ -36,6 +37,8 @@ public class GameManager : MonoBehaviour
             platformingRespawnPoint = PlayerController.Instance.transform.position;
             respawnPoint = PlayerController.Instance.transform.position;
         }
+
+        airDeath = false;
     }
 
     public IEnumerator Respawn()
@@ -48,7 +51,13 @@ public class GameManager : MonoBehaviour
         player.pState.beenHit = false;
         player.rb.gravityScale = 0f;
 
+        airDeath = player.Grounded() ? false : true;
+
         bool isDeathRespawn = !player.pState.alive;
+
+        // DEBUG: Aggiungi log per capire il tipo di respawn
+        Debug.Log($"Respawn chiamato - isDeathRespawn: {isDeathRespawn}, player.pState.alive: {player.pState.alive}");
+        Debug.Log($"LastPosition: {player.lastPosition}, LastFacingWasRight: {player.lastFacingWasRight}");
 
         Time.timeScale = 1f;
 
@@ -58,6 +67,7 @@ public class GameManager : MonoBehaviour
         // Se il respawn è dovuto alla morte, ripristina la salute al massimo
         if (isDeathRespawn)
         {
+            Debug.Log("Handling death respawn - creating DeathStone");
             HandleDeathStone(player.lastPosition, player.lastFacingWasRight);
 
             player.transform.position = GameManager.Instance.respawnPoint;
@@ -68,6 +78,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            Debug.Log("Handling platforming respawn - no DeathStone");
             player.transform.position = GameManager.Instance.platformingRespawnPoint;
         }
 
@@ -80,13 +91,17 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
         player.pState.invincible = false;
+        airDeath = false;
     }
 
     private void HandleDeathStone(Vector3 deathPosition, bool lastFacingWasRight)
     {
+        Debug.Log($"HandleDeathStone chiamato - Position: {deathPosition}, FacingRight: {lastFacingWasRight}");
+
         // Rimuovi la DeathStone precedente se esiste ancora
         if (currentDeathStone != null)
         {
+            Debug.Log("Distruggendo DeathStone precedente");
             Destroy(currentDeathStone);
             currentDeathStone = null;
         }
@@ -94,17 +109,21 @@ public class GameManager : MonoBehaviour
         // Crea una nuova DeathStone nella posizione di morte
         if (deathStonePrefab != null)
         {
+            Debug.Log("Creando nuova DeathStone");
             currentDeathStone = Instantiate(deathStonePrefab, deathPosition, Quaternion.identity);
 
-            currentDeathStone.transform.position += Vector3.down * 0.7f;
+            currentDeathStone.transform.position += Vector3.down * 0.5f;
 
-            if (lastFacingWasRight)
+            if (airDeath)
             {
-                currentDeathStone.transform.position += Vector3.left * 1.5f;
-            }
-            else
-            {
-                currentDeathStone.transform.position += Vector3.right * 1.5f;
+                if (lastFacingWasRight)
+                {
+                    currentDeathStone.transform.position += Vector3.left * 0.8f;
+                }
+                else
+                {
+                    currentDeathStone.transform.position += Vector3.right * 0.8f;
+                }
             }
             
             Debug.Log($"DeathStone creata alla posizione: {deathPosition}");

@@ -6,8 +6,8 @@ public class UIManager : MonoBehaviour
     public SceneFader sceneFader;
 
     public static UIManager Instance;
-
-    [SerializeField] GameObject halfMana, fullMana;
+    [SerializeField] public GameObject mapHandler;
+    [SerializeField] private GameObject halfMana, fullMana;
 
     public enum ManaState
     {

@@ -15,14 +15,33 @@ public class Crawler : Enemy
         ChangeState(EnemyStates.Crawler_Idle);
         rb.gravityScale = 12f;
     }
+    
+    // AGGIUNGI QUESTI METODI PER DEBUG E COLLISIONI
+    protected override void OnTriggerEnter2D(Collider2D other)
+    {
+        Debug.Log($"Crawler OnTriggerEnter2D with: {other.name}, Tag: {other.tag}");
+        base.OnTriggerEnter2D(other);
+    }
+
+    protected override void OnCollisionEnter2D(Collision2D collision)
+    {
+        Debug.Log($"Crawler OnCollisionEnter2D with: {collision.gameObject.name}, Tag: {collision.gameObject.tag}");
+        base.OnCollisionEnter2D(collision);
+    }
+
+    protected override void Attack()
+    {
+        Debug.Log("Crawler is attacking player!");
+        base.Attack();
+    }
 
     protected override void UpdateEnemyStates()
     {
         if (health <= 0)
         {
-            Death(0.05f);   
+            Death(0.05f);
         }
-        
+
         if (PlayerController.Instance == null) return;
 
         if (!PlayerController.Instance.pState.alive) return;

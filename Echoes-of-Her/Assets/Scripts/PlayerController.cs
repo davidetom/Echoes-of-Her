@@ -107,6 +107,7 @@ public class PlayerController : MonoBehaviour
     private float xAxis, yAxis;
     public Vector3 lastPosition;
     public bool lastFacingWasRight;
+    bool openMap;
     private float gravity;
 
     // Aggiungiamo una lista per tenere traccia dei collider dei nemici che stiamo ignorando
@@ -134,7 +135,7 @@ public class PlayerController : MonoBehaviour
             Debug.LogWarning("PlayerStateList non trovato, verrà aggiunto automaticamente");
             pState = gameObject.AddComponent<PlayerStateList>();
         }
-        
+
         // Ottieni il collider del giocatore
         playerCollider = GetComponent<Collider2D>();
         if (playerCollider == null)
@@ -186,7 +187,7 @@ public class PlayerController : MonoBehaviour
         Health = maxHealth;
 
         lastPosition = transform.position;
-        lastFacingWasRight = pState.lookingRight;
+        lastFacingWasRight = true;
     }
 
     //Per visualizzare le hitbox degli attacchi
@@ -218,6 +219,7 @@ public class PlayerController : MonoBehaviour
         if (pState.alive)
         {
             GetInputs();
+            ToggleMap();
 
             UpdateJumpVariables();
             ManageDashState();
@@ -242,7 +244,7 @@ public class PlayerController : MonoBehaviour
         if (Grounded())
         {
             lastPosition = transform.position;
-            lastFacingWasRight = pState.lookingRight;
+            lastFacingWasRight = pState.lookingRight ? true : false;
         }
     }
 
@@ -269,6 +271,7 @@ public class PlayerController : MonoBehaviour
         xAxis = Input.GetAxisRaw("Horizontal");
         yAxis = Input.GetAxisRaw("Vertical");
         attack = Input.GetButtonDown("Attack");
+        openMap = Input.GetButton("Map");
 
         if (Input.GetButtonDown("Cast/Heal"))
         {
@@ -286,6 +289,18 @@ public class PlayerController : MonoBehaviour
         else
         {
             castOrHealTimer = 0;
+        }
+    }
+
+    private void ToggleMap()
+    {
+        if (openMap)
+        {
+            UIManager.Instance.mapHandler.SetActive(true);
+        }
+        else
+        {
+            UIManager.Instance.mapHandler.SetActive(false);
         }
     }
 
