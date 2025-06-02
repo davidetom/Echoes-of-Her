@@ -6596,6 +6596,10 @@ PrefabInstance:
       propertyPath: mapHandler
       value: 
       objectReference: {fileID: 2051415733}
+    - target: {fileID: 6077981267286772677, guid: 5b75ecc35eac342cdbbead18615c38b4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8065000480916258786, guid: 5b75ecc35eac342cdbbead18615c38b4, type: 3}
       propertyPath: m_Color.a
       value: 0.74509805
@@ -7726,7 +7730,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1777915063
   m_SortingLayer: 2
-  m_SortingOrder: -1
+  m_SortingOrder: -2
   m_Sprite: {fileID: -2961241042903359879, guid: 21fb5cfed8d3b4ed6a0e9e4ad40b88f6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -8300,11 +8304,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 49739271174541564, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5.8
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 49739271174541564, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 3.03
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 49739271174541564, guid: c8f677729fa6c41a489238c6070b67ed, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8555,7 +8559,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8215071261523271152, guid: b8ec413e505194e91967bc3884d059e2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -10
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8215071261523271152, guid: b8ec413e505194e91967bc3884d059e2, type: 3}
       propertyPath: m_LocalRotation.w
@@ -8663,7 +8667,7 @@ SceneRoots:
   - {fileID: 7512163839124492219}
   - {fileID: 6220750833986962603}
   - {fileID: 1495242934}
-  - {fileID: 7894736283492859364}
   - {fileID: 5602985030716336025}
   - {fileID: 7019693711273170686}
   - {fileID: 8263511869576309271}
+  - {fileID: 7894736283492859364}

@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,6 +19,7 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
+        SaveData.Instance.Initialize();
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -26,6 +28,9 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
         }
+
+        SaveScene();
+        
         DontDestroyOnLoad(gameObject);
     }
 
@@ -39,6 +44,12 @@ public class GameManager : MonoBehaviour
         }
 
         airDeath = false;
+    }
+
+    public void SaveScene()
+    {
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        SaveData.Instance.sceneNames.Add(currentSceneName);
     }
 
     public IEnumerator Respawn()
@@ -67,10 +78,36 @@ public class GameManager : MonoBehaviour
         // Se il respawn è dovuto alla morte, ripristina la salute al massimo
         if (isDeathRespawn)
         {
+            SaveData.Instance.LoadBench();
             Debug.Log("Handling death respawn - creating DeathStone");
             HandleDeathStone(player.lastPosition, player.lastFacingWasRight);
 
-            player.transform.position = GameManager.Instance.respawnPoint;
+            // Controlla se c'è una bench salvata
+            string benchScene = SaveData.Instance.benchSceneName;
+            Vector2 benchPosition = SaveData.Instance.benchPos;
+            
+            // Se non c'è nessuna bench salvata, usa valori di default
+            if (string.IsNullOrEmpty(benchScene))
+            {
+                benchScene = "Cave_1";
+                benchPosition = respawnPoint;
+                Debug.Log("Nessuna bench salvata, respawn nella scena di default: " + benchScene);
+            }
+
+            // Controlla se dobbiamo cambiare scena
+            string currentSceneName = SceneManager.GetActiveScene().name;
+            if (benchScene != currentSceneName)
+            {
+                // Se dobbiamo cambiare scena, gestisci il respawn dopo il caricamento
+                StartCoroutine(RespawnAfterSceneLoad(benchScene, benchPosition));
+                yield break; // Esci dalla coroutine corrente
+            }
+            else
+            {
+                respawnPoint = benchPosition;
+                player.transform.position = respawnPoint;
+            }
+
             player.Health = player.maxHealth;
             player.halfMana = true;
             UIManager.Instance.SwitchMana(UIManager.ManaState.HalfMana);
@@ -79,7 +116,7 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.Log("Handling platforming respawn - no DeathStone");
-            player.transform.position = GameManager.Instance.platformingRespawnPoint;
+            player.transform.position = platformingRespawnPoint;
         }
 
         player.pState.alive = true;
@@ -89,6 +126,39 @@ public class GameManager : MonoBehaviour
 
         player.pState.cutscene = false;
 
+        yield return new WaitForSeconds(0.5f);
+        player.pState.invincible = false;
+        airDeath = false;
+    }
+
+    private IEnumerator RespawnAfterSceneLoad(string targetScene, Vector2 targetPosition)
+    {
+        SceneManager.LoadScene(targetScene);
+        yield return new WaitForEndOfFrame();
+        
+        PlayerController player = PlayerController.Instance;
+        if (player == null)
+        {
+            yield return new WaitForSeconds(0.1f);
+            player = PlayerController.Instance;
+        }
+
+        respawnPoint = targetPosition;
+        player.transform.position = respawnPoint;
+        
+        player.Health = player.maxHealth;
+        player.halfMana = true;
+        UIManager.Instance.SwitchMana(UIManager.ManaState.HalfMana);
+        player.Mana = 0f;
+        
+        player.pState.alive = true;
+        player.ResetAllStates();
+        
+        StartCoroutine(UIManager.Instance.sceneFader.Fade(SceneFader.FadeDirection.Out));
+        yield return new WaitForSecondsRealtime(UIManager.Instance.sceneFader.fadeTime);
+
+        player.pState.cutscene = false;
+        
         yield return new WaitForSeconds(0.5f);
         player.pState.invincible = false;
         airDeath = false;
@@ -125,7 +195,7 @@ public class GameManager : MonoBehaviour
                     currentDeathStone.transform.position += Vector3.right * 0.8f;
                 }
             }
-            
+
             Debug.Log($"DeathStone creata alla posizione: {deathPosition}");
         }
         else

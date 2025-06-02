@@ -290,6 +290,17 @@ public class PlayerController : MonoBehaviour
         {
             castOrHealTimer = 0;
         }
+
+        if (Input.GetButtonDown("Reset"))
+        {
+            ResetSalvataggio();
+        }
+    }
+
+    private void ResetSalvataggio()
+    {
+        SaveData.Instance.ResetToDefault();
+        Debug.Log("Dati cancellati");
     }
 
     private void ToggleMap()
